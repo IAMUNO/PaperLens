@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Layers, Loader2, ArrowLeft, Sparkles } from 'lucide-react';
+import { Layers, Loader2, Sparkles, Zap, ArrowRight, BrainCircuit, Lightbulb, BookOpen, Network } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import InputSelection from '../components/InputSelection';
@@ -39,124 +39,138 @@ const Dashboard = () => {
 
     const currentStageData = results ? results[activeStage] : null;
 
-    // Safety check to prevent crash if backend returns incomplete data
-    if (results && !currentStageData) {
-        console.error(`Stage '${activeStage}' not found in results:`, results);
-        return (
-            <div className="p-8 text-center text-red-400">
-                Error: Could not load data for stage "{activeStage}".
-            </div>
-        );
-    }
-
     return (
-        <div className="min-h-screen bg-[#0f172a] text-white flex flex-col">
-            {/* Header */}
-            <header className="h-16 border-b border-white/10 flex items-center px-6 bg-[#0f172a]/80 backdrop-blur-md sticky top-0 z-50">
-                <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                    <div className="p-1.5 rounded bg-blue-500/20">
-                        <Layers className="text-blue-400" size={20} />
-                    </div>
-                    <span className="font-bold text-lg tracking-tight">PaperLens</span>
-                </Link>
-            </header>
+        <div className="min-h-screen bg-[#0a0a0c] text-slate-200 font-sans selection:bg-indigo-500/30 overflow-x-hidden">
+            {/* Ambient Background */}
+            <div className="fixed inset-0 pointer-events-none z-0">
+                <div className="absolute top-[-10%] left-[20%] w-[1000px] h-[600px] bg-indigo-900/20 rounded-full blur-[120px] opacity-40 animate-pulse-slow" />
+                <div className="absolute top-[20%] right-[10%] w-[800px] h-[600px] bg-purple-900/10 rounded-full blur-[100px] opacity-30" />
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03]" />
+            </div>
 
-            {/* Main Content - Split Layout */}
-            <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+            <div className="relative z-10 max-w-7xl mx-auto px-6 py-6 min-h-screen flex flex-col">
+                {/* Header */}
+                <header className="flex items-center justify-between mb-16">
+                    <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                        <Layers className="text-white" size={24} />
+                        <span className="font-serif text-2xl font-bold tracking-tight text-white">PaperLens</span>
+                    </Link>
+                </header>
 
-                {/* Left Panel: Input Area */}
-                <div className={`
-          flex-shrink-0 w-full lg:w-[480px] p-6 flex flex-col gap-8 border-r border-white/5 bg-[#0f172a]
-          ${results ? 'lg:h-[calc(100vh-64px)] overflow-y-auto' : 'lg:h-auto lg:justify-center'}
-          transition-all duration-500 ease-in-out
-        `}>
+                <AnimatePresence mode="wait">
+                    {!results ? (
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="flex-1 flex flex-col items-center max-w-2xl mx-auto w-full mt-12"
+                        >
+                            {/* Hero Text */}
+                            <h1 className="font-serif text-5xl md:text-6xl font-medium text-center text-white mb-6 leading-tight">
+                                Where knowledge <br /> takes <span className="text-indigo-400 italic">shape</span>.
+                            </h1>
+                            <p className="text-slate-400 text-center mb-10 text-lg max-w-lg">
+                                Transform any content into a structured visual map.
+                            </p>
 
-                    <div className="max-w-md mx-auto w-full">
-                        <h2 className="text-2xl font-bold mb-2">New Analysis</h2>
-                        <p className="text-gray-400 mb-8 text-sm">Select a source to visualize knowledge.</p>
+                            {/* Input Section */}
+                            <div className="w-full relative group perspective-1000">
+                                <InputSelection inputType={inputType} setInputType={setInputType} />
 
-                        <InputSelection inputType={inputType} setInputType={setInputType} />
+                                <div className="relative relative z-20 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-2 shadow-2xl shadow-indigo-500/10 transition-all duration-300 group-focus-within:border-indigo-500/50 group-focus-within:shadow-indigo-500/20 group-focus-within:ring-1 group-focus-within:ring-indigo-500/30">
+                                    <div className="flex items-center gap-4 px-4">
+                                        <Zap className={`text-slate-500 transition-colors ${url ? 'text-yellow-400' : ''}`} size={20} />
+                                        <input
+                                            type="text"
+                                            placeholder="Paste a link to start..."
+                                            value={url}
+                                            onChange={(e) => setUrl(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && handleAnalyze()}
+                                            className="flex-1 bg-transparent border-none outline-none py-4 text-lg text-white placeholder-slate-500"
+                                            autoFocus
+                                        />
+                                        <button
+                                            onClick={handleAnalyze}
+                                            disabled={!url || isAnalyzing}
+                                            className={`
+                                                px-6 py-2.5 rounded-xl font-medium text-sm transition-all duration-300 flex items-center gap-2
+                                                ${url && !isAnalyzing
+                                                    ? 'bg-white text-black hover:scale-105 shadow-lg shadow-white/20'
+                                                    : 'bg-white/10 text-slate-400 cursor-not-allowed'}
+                                            `}
+                                        >
+                                            {isAnalyzing ? <Loader2 className="animate-spin" size={16} /> : <Sparkles size={16} />}
+                                            <span>Generate Insight</span>
+                                        </button>
+                                    </div>
 
-                        <div className="space-y-4">
-                            <div>
-                                <input
-                                    type="text"
-                                    placeholder={
-                                        inputType === 'youtube' ? "Paste YouTube Link..." :
-                                            inputType === 'pdf' ? "Paste PDF URL..." :
-                                                inputType === 'web' ? "Paste Website URL..." : "Image Input..."
-                                    }
-                                    value={url}
-                                    onChange={(e) => setUrl(e.target.value)}
-                                    className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
-                                />
+                                    {/* Loading Progress Bar */}
+                                    {isAnalyzing && (
+                                        <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-white/10 overflow-hidden rounded-full">
+                                            <motion.div
+                                                className="h-full bg-indigo-500"
+                                                initial={{ width: "0%" }}
+                                                animate={{ width: "100%" }}
+                                                transition={{ duration: 2, ease: "easeInOut" }}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
-                            <button
-                                className={`
-                  w-full py-3.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all
-                  ${!url || isAnalyzing
-                                        ? 'bg-slate-800 text-gray-500 cursor-not-allowed'
-                                        : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-lg shadow-blue-500/25 active:scale-[0.98]'
-                                    }
-                `}
-                                onClick={handleAnalyze}
-                                disabled={!url || isAnalyzing}
-                            >
-                                {isAnalyzing ? (
-                                    <>
-                                        <Loader2 size={20} className="animate-spin" />
-                                        <span>Analyzing...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Layers size={20} />
-                                        <span>Visualize</span>
-                                    </>
-                                )}
-                            </button>
-
                             {error && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm text-center"
-                                >
+                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 text-red-400 bg-red-500/10 px-4 py-2 rounded-lg border border-red-500/20 text-sm">
                                     {error}
                                 </motion.div>
                             )}
-                        </div>
-                    </div>
-                </div>
 
-                {/* Right Panel: Results Area */}
-                <div className="flex-1 bg-slate-900/30 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-grid-white/[0.02] -z-10" />
+                            {/* Ghost Cards (Framework Preview) */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full mt-20 opacity-30 pointer-events-none select-none grayscale">
+                                {[
+                                    { title: 'Concept', icon: Lightbulb },
+                                    { title: 'Example', icon: BrainCircuit },
+                                    { title: 'Learning', icon: BookOpen },
+                                    { title: 'Expansion', icon: Network }
+                                ].map((item, idx) => (
+                                    <div key={idx} className="aspect-[4/5] border border-white/10 rounded-2xl p-6 flex flex-col items-center justify-center gap-4 bg-gradient-to-b from-white/5 to-transparent">
+                                        <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
+                                            <item.icon size={20} className="text-white" />
+                                        </div>
+                                        <span className="font-serif text-lg text-white/50">{item.title}</span>
+                                        <div className="w-full space-y-2 mt-2">
+                                            <div className="h-2 w-3/4 bg-white/10 rounded-full mx-auto" />
+                                            <div className="h-2 w-1/2 bg-white/10 rounded-full mx-auto" />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
 
-                    <AnimatePresence mode="wait">
-                        {!results ? (
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="h-full flex flex-col items-center justify-center text-gray-500 p-8 text-center"
-                            >
-                                <div className="w-24 h-24 rounded-full bg-slate-800/50 flex items-center justify-center mb-6 border border-white/5">
-                                    <Layers size={40} className="text-slate-700" />
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="results"
+                            initial={{ opacity: 0, y: 40 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6, ease: "easeOut" }}
+                            className="flex-1 w-full max-w-6xl mx-auto"
+                        >
+                            {/* Result View */}
+                            <div className="flex items-center gap-4 mb-8">
+                                <button
+                                    onClick={() => setResults(null)}
+                                    className="p-2 hover:bg-white/10 rounded-full transition-colors text-slate-400 hover:text-white"
+                                >
+                                    <ArrowLeft size={20} />
+                                </button>
+                                <div>
+                                    <h2 className="text-sm font-medium text-indigo-400 uppercase tracking-wider mb-1">Generated Map</h2>
+                                    <h1 className="text-2xl font-serif text-white">{currentStageData?.title}</h1>
                                 </div>
-                                <h3 className="text-xl font-medium mb-2 text-gray-400">Ready to visualize</h3>
-                                <p className="max-w-sm text-sm opacity-60">Result diagrams will appear here after analysis.</p>
-                            </motion.div>
-                        ) : (
-                            <motion.div
-                                key="results"
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ duration: 0.5 }}
-                                className="h-full flex flex-col h-[calc(100vh-64px)] overflow-hidden"
-                            >
-                                {/* Stage Navigator (Top of Right Panel) */}
-                                <div className="p-6 border-b border-white/5 bg-[#0f172a]/50 backdrop-blur-sm z-10">
+                            </div>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-8 items-start">
+                                {/* Left: Navigation */}
+                                <div className="sticky top-24">
                                     <StageNavigator
                                         activeStage={activeStage}
                                         setStage={setActiveStage}
@@ -164,37 +178,31 @@ const Dashboard = () => {
                                     />
                                 </div>
 
-                                {/* Diagram Content (Scrollable) */}
-                                <div className="flex-1 overflow-y-auto p-6 lg:p-10">
-                                    <motion.div
-                                        key={activeStage}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ duration: 0.3 }}
-                                        className="max-w-5xl mx-auto"
-                                    >
-                                        <div className="mb-8">
-                                            <h2 className="text-3xl font-bold text-white mb-3">{currentStageData.title}</h2>
-                                            <p className="text-lg text-gray-400">{currentStageData.description}</p>
+                                {/* Right: Content */}
+                                <div className="space-y-6">
+                                    {/* Main Diagram Card */}
+                                    <div className="bg-[#13141b] border border-white/10 rounded-3xl p-2 shadow-2xl relative overflow-hidden group">
+                                        <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                                        <div className="bg-[#0e0e11] rounded-2xl overflow-hidden min-h-[500px] flex items-center justify-center">
+                                            <DiagramRenderer chart={currentStageData?.mermaid_code} stage={activeStage} />
                                         </div>
+                                    </div>
 
-                                        <div className="glass-card bg-[#1e293b]/50 border-white/10 p-1 mb-8 shadow-2xl overflow-hidden">
-                                            <DiagramRenderer chart={currentStageData.mermaid_code} stage={activeStage} />
+                                    {/* Explanation Card */}
+                                    <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 pt-6">
+                                        <div className="flex items-center gap-2 mb-4 text-indigo-300">
+                                            <Sparkles size={16} />
+                                            <span className="text-xs font-bold uppercase tracking-widest">Key Insight</span>
                                         </div>
-
-                                        <div className="bg-gradient-to-br from-blue-900/10 to-indigo-900/10 border border-blue-500/20 rounded-2xl p-6 lg:p-8">
-                                            <h3 className="flex items-center gap-2 text-sm uppercase tracking-wider text-blue-400 font-bold mb-4">
-                                                <Sparkles size={16} />
-                                                AI Explanation
-                                            </h3>
-                                            <p className="text-gray-300 leading-relaxed text-lg font-light">{currentStageData.explanation}</p>
-                                        </div>
-                                    </motion.div>
+                                        <p className="text-slate-300 leading-relaxed text-lg font-light">
+                                            {currentStageData?.explanation}
+                                        </p>
+                                    </div>
                                 </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
         </div>
     );
