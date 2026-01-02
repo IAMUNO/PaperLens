@@ -18,12 +18,18 @@ class AnalysisResult(BaseModel):
 
 class LLMEngine:
     def __init__(self):
-        self.api_key = os.getenv("OPENAI_API_KEY")
-        self.client = OpenAI(api_key=self.api_key)
+        self.client = None
+
+    def _get_client(self):
+        if not self.client:
+            api_key = os.getenv("OPENAI_API_KEY")
+            if not api_key:
+                raise ValueError("OPENAI_API_KEY is not set in environment variables")
+            self.client = OpenAI(api_key=api_key)
+        return self.client
 
     def analyze_content(self, text: str) -> Dict:
-        if not self.api_key:
-            raise ValueError("OPENAI_API_KEY is not set")
+        client = self._get_client()
             
         system_prompt = """
         You are an expert educational content creator. Your goal is to explain complex topics using visual diagrams.

@@ -20,12 +20,19 @@ class InputProcessor:
             raise ValueError("Invalid YouTube URL")
         
         try:
-            transcript_list = YouTubeTranscriptApi.get_transcript(video_id, languages=['en', 'ko'])
-            # Combine text
-            full_text = " ".join([item['text'] for item in transcript_list])
+            # Instantiate the API (required for this version/environment)
+            api = YouTubeTranscriptApi()
+            
+            # Use fetch with languages (supports 'ko' for the problematic video)
+            transcript_list = api.fetch(video_id, languages=['ko', 'en', 'en-US'])
+            
+            # Combine text (fetch returns list of objects with .text attribute)
+            full_text = " ".join([item.text for item in transcript_list])
             return full_text
         except Exception as e:
-            raise ValueError(f"Failed to fetch transcript: {str(e)}")
+            # Fallback attempts or detailed error logging
+            print(f"Transcript Error: {e}")
+            raise ValueError(f"Could not retrieve transcript. Details: {str(e)}")
 
     @staticmethod
     def process_input(input_type: str, content: str) -> str:
